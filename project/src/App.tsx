@@ -11,7 +11,7 @@ import { useStore } from './lib/store';
 import { supabase } from './lib/supabase';
 
 function App() {
-  const { user, setUser } = useStore();
+  const { user, setUser, darkMode } = useStore();
 
   React.useEffect(() => {
     const checkSession = async () => {
@@ -31,6 +31,14 @@ function App() {
 
     checkSession();
   }, [setUser]);
+
+  React.useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
 
   return (
     <Router>

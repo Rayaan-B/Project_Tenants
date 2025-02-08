@@ -18,6 +18,8 @@ export interface Property {
   created_by: string;
   created_at: string;
   updated_at: string;
+  expected_rent?: number;
+  units?: Unit[];
 }
 
 export interface Unit {
@@ -31,6 +33,7 @@ export interface Unit {
   created_at: string;
   updated_at: string;
   property?: Property;
+  tenant_id?: string | null;
 }
 
 export interface Tenant {

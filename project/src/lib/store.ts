@@ -11,6 +11,7 @@ interface AppState {
   units: Unit[];
   loading: boolean;
   error: string | null;
+  darkMode: boolean;
   setUser: (user: Profile | null) => void;
   setProfile: (profile: Profile | null) => void;
   setTenants: (tenants: Tenant[]) => void;
@@ -27,6 +28,7 @@ interface AppState {
   updateTenant: (id: string, tenant: Partial<Tenant>) => Promise<void>;
   deletePayment: (id: string) => Promise<void>;
   logout: () => Promise<void>;
+  toggleDarkMode: () => void;
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -38,6 +40,7 @@ export const useStore = create<AppState>((set, get) => ({
   units: [],
   loading: false,
   error: null,
+  darkMode: localStorage.getItem('darkMode') === 'true',
 
   logout: async () => {
     try {
@@ -51,7 +54,7 @@ export const useStore = create<AppState>((set, get) => ({
         properties: [],
         units: []
       }); // Clear all state
-      window.location.href = '/login'; // Redirect to login page
+      window.location.href = '/#/login'; // Redirect to login page with hash routing
     } catch (error) {
       console.error('Error logging out:', error);
       set({ error: (error as Error).message });
@@ -66,6 +69,11 @@ export const useStore = create<AppState>((set, get) => ({
   setUnits: (units) => set({ units }),
   setLoading: (loading) => set({ loading }),
   setError: (error) => set({ error }),
+  toggleDarkMode: () => {
+    const newDarkMode = !get().darkMode;
+    localStorage.setItem('darkMode', String(newDarkMode));
+    set({ darkMode: newDarkMode });
+  },
 
   fetchTenants: async () => {
     try {

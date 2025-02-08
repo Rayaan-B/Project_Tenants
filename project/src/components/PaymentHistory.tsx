@@ -1,6 +1,6 @@
 import React from 'react';
 import { useStore } from '../lib/store';
-import { Payment, Tenant } from '../lib/types';
+import { Tenant } from '../lib/types';
 
 type TenantPaymentSummary = {
   tenant: Tenant;
@@ -96,18 +96,18 @@ const PaymentHistory: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'paid':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300';
       case 'partial':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300';
       case 'unpaid':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300';
     }
   };
 
   if (loading) {
-    return <div className="text-gray-600">Loading payment information...</div>;
+    return <div className="text-gray-600 dark:text-gray-400">Loading payment information...</div>;
   }
 
   return (
@@ -119,14 +119,14 @@ const PaymentHistory: React.FC = () => {
             placeholder="Search by tenant name or unit..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500 dark:focus:border-indigo-500"
           />
         </div>
         <div>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full sm:w-auto px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 dark:focus:border-indigo-500"
           >
             <option value="all">All Statuses</option>
             <option value="paid">Paid</option>
@@ -136,80 +136,94 @@ const PaymentHistory: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white shadow-sm rounded-lg overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-800/50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Tenant
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Monthly Rent
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Total Due
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Total Paid
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Balance
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Last Payment
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Status
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {filteredSummaries.map((summary, index) => (
                 <tr
                   key={summary.tenant.id}
                   className={`${
-                    index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
-                  } hover:bg-gray-100 transition-colors cursor-pointer`}
+                    index % 2 === 0 ? 'bg-gray-50 dark:bg-gray-800/50' : 'bg-white dark:bg-gray-800'
+                  } hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors cursor-pointer`}
                 >
-                  <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                    <div className="text-sm font-medium text-gray-900">
+                  <td className="px-3 sm:px-6 py-3 sm:py-4">
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">
                       {summary.tenant.unit?.unit_number}
                     </div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
                       {summary.tenant.tenant_name}
                     </div>
+                    <div className="sm:hidden text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Monthly: KES {summary.tenant.rent_amount.toLocaleString()}
+                    </div>
+                    <div className="sm:hidden text-xs text-gray-500 dark:text-gray-400">
+                      Due: KES {summary.totalRentDue.toLocaleString()}
+                    </div>
+                    <div className="sm:hidden text-xs text-gray-500 dark:text-gray-400">
+                      Paid: KES {summary.totalPaid.toLocaleString()}
+                    </div>
+                    <div className="sm:hidden text-xs text-gray-500 dark:text-gray-400">
+                      Last Payment: {summary.lastPaymentDate
+                        ? new Date(summary.lastPaymentDate).toLocaleDateString()
+                        : '-'}
+                    </div>
                   </td>
-                  <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    <div className="text-sm text-gray-900">
+                  <td className="hidden sm:table-cell px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                    <div className="text-sm text-gray-900 dark:text-white">
                       KES {summary.tenant.rent_amount.toLocaleString()}
                     </div>
                   </td>
-                  <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    <div className="text-sm text-gray-900">
+                  <td className="hidden sm:table-cell px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                    <div className="text-sm text-gray-900 dark:text-white">
                       KES {summary.totalRentDue.toLocaleString()}
                     </div>
                   </td>
-                  <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    <div className="text-sm text-gray-900">
+                  <td className="hidden sm:table-cell px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                    <div className="text-sm text-gray-900 dark:text-white">
                       KES {summary.totalPaid.toLocaleString()}
                     </div>
                   </td>
-                  <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    <div className="text-sm text-gray-900">
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-500 dark:text-gray-400">
+                    <div className="text-sm text-gray-900 dark:text-white">
                       KES {summary.balance.toLocaleString()}
                     </div>
                   </td>
-                  <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    <div className="text-sm text-gray-900">
+                  <td className="hidden sm:table-cell px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                    <div className="text-sm text-gray-900 dark:text-white">
                       {summary.lastPaymentDate
                         ? new Date(summary.lastPaymentDate).toLocaleDateString()
                         : '-'}
                     </div>
                   </td>
-                  <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-500 dark:text-gray-400">
                     <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(
+                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getStatusColor(
                         summary.paymentStatus
                       )}`}
                     >

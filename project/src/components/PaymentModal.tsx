@@ -25,8 +25,12 @@ export default function PaymentModal({ isOpen, onClose, payment }: PaymentModalP
   });
 
   React.useEffect(() => {
-    fetchTenants();
-  }, [fetchTenants]);
+    if (isOpen) {
+      fetchTenants().then(() => {
+        console.log('Tenants loaded:', tenants);
+      });
+    }
+  }, [isOpen, fetchTenants]);
 
   // Initialize form data when editing
   React.useEffect(() => {
@@ -115,36 +119,40 @@ export default function PaymentModal({ isOpen, onClose, payment }: PaymentModalP
 
   return (
     <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="animate-in fade-in zoom-in-95 bg-white rounded-2xl p-6 w-full max-w-lg shadow-xl">
+      <div className="animate-in fade-in zoom-in-95 bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-lg shadow-xl">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
             {payment ? 'Edit Payment' : 'Record Payment'}
           </h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
             <X className="h-6 w-6" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Tenant</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tenant</label>
             <select
               required
               value={formData.tenantId}
               onChange={(e) => setFormData(prev => ({ ...prev, tenantId: e.target.value }))}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-white"
             >
               <option value="">Select a tenant</option>
-              {sortedTenants.map((tenant: Tenant) => (
-                <option key={tenant.id} value={tenant.id}>
-                  {tenant.unit?.unit_number} - {tenant.tenant_name}
-                </option>
-              ))}
+              {sortedTenants.length === 0 ? (
+                <option value="" disabled>Loading tenants...</option>
+              ) : (
+                sortedTenants.map((tenant: Tenant) => (
+                  <option key={tenant.id} value={tenant.id}>
+                    {tenant.tenant_name} {tenant.unit?.unit_number ? `(Unit ${tenant.unit.unit_number})` : ''}
+                  </option>
+                ))
+              )}
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Amount</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Amount</label>
             <input
               type="number"
               required
@@ -152,37 +160,37 @@ export default function PaymentModal({ isOpen, onClose, payment }: PaymentModalP
               step="0.01"
               value={formData.amount}
               onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-white"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Due Date</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Due Date</label>
             <input
               type="date"
               required
               value={formData.dueDate}
               onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-white"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Payment Date</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Payment Date</label>
             <input
               type="date"
               value={formData.paymentDate}
               onChange={(e) => setFormData(prev => ({ ...prev, paymentDate: e.target.value }))}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-white"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Payment Method</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Payment Method</label>
             <select
               value={formData.paymentMethod}
               onChange={(e) => setFormData(prev => ({ ...prev, paymentMethod: e.target.value }))}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-white"
             >
               <option value="">Select a method</option>
               <option value="Mpesa">Mpesa</option>
@@ -192,29 +200,29 @@ export default function PaymentModal({ isOpen, onClose, payment }: PaymentModalP
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Notes</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
             <textarea
               value={formData.notes}
               onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-white"
               rows={3}
             />
           </div>
 
-          <div className="flex justify-end space-x-3">
+          <div className="flex justify-end gap-3 mt-6">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
-              {loading ? 'Saving...' : (payment ? 'Update Payment' : 'Record Payment')}
+              {loading ? 'Saving...' : payment ? 'Update Payment' : 'Record Payment'}
             </button>
           </div>
         </form>
