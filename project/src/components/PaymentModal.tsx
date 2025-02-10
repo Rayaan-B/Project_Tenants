@@ -20,6 +20,7 @@ export default function PaymentModal({ isOpen, onClose, payment }: PaymentModalP
     dueDate: '',
     paymentDate: '',
     paymentMethod: '',
+    mpesa_code: '',
     notes: '',
     paymentReminder: false
   });
@@ -41,6 +42,7 @@ export default function PaymentModal({ isOpen, onClose, payment }: PaymentModalP
         dueDate: payment.due_date,
         paymentDate: payment.payment_date || '',
         paymentMethod: payment.payment_method || '',
+        mpesa_code: payment.mpesa_code || '',
         notes: payment.notes || '',
         paymentReminder: false
       });
@@ -51,6 +53,7 @@ export default function PaymentModal({ isOpen, onClose, payment }: PaymentModalP
         dueDate: '',
         paymentDate: '',
         paymentMethod: '',
+        mpesa_code: '',
         notes: '',
         paymentReminder: false
       });
@@ -80,6 +83,7 @@ export default function PaymentModal({ isOpen, onClose, payment }: PaymentModalP
             due_date: formData.dueDate,
             payment_date: formData.paymentDate || null,
             payment_method: formData.paymentMethod || null,
+            mpesa_code: formData.mpesa_code || null,
             notes: formData.notes || null,
             status: formData.paymentDate ? 'paid' : 'pending'
           })
@@ -97,6 +101,7 @@ export default function PaymentModal({ isOpen, onClose, payment }: PaymentModalP
             due_date: formData.dueDate,
             payment_date: formData.paymentDate || null,
             payment_method: formData.paymentMethod || null,
+            mpesa_code: formData.mpesa_code || null,
             notes: formData.notes || null,
             status: formData.paymentDate ? 'paid' : 'pending'
           });
@@ -113,6 +118,10 @@ export default function PaymentModal({ isOpen, onClose, payment }: PaymentModalP
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   if (!isOpen) return null;
@@ -135,7 +144,8 @@ export default function PaymentModal({ isOpen, onClose, payment }: PaymentModalP
             <select
               required
               value={formData.tenantId}
-              onChange={(e) => setFormData(prev => ({ ...prev, tenantId: e.target.value }))}
+              onChange={handleInputChange}
+              name="tenantId"
               className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-white"
             >
               <option value="">Select a tenant</option>
@@ -159,7 +169,8 @@ export default function PaymentModal({ isOpen, onClose, payment }: PaymentModalP
               min="0"
               step="0.01"
               value={formData.amount}
-              onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
+              onChange={handleInputChange}
+              name="amount"
               className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-white"
             />
           </div>
@@ -170,7 +181,8 @@ export default function PaymentModal({ isOpen, onClose, payment }: PaymentModalP
               type="date"
               required
               value={formData.dueDate}
-              onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
+              onChange={handleInputChange}
+              name="dueDate"
               className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-white"
             />
           </div>
@@ -180,17 +192,22 @@ export default function PaymentModal({ isOpen, onClose, payment }: PaymentModalP
             <input
               type="date"
               value={formData.paymentDate}
-              onChange={(e) => setFormData(prev => ({ ...prev, paymentDate: e.target.value }))}
+              onChange={handleInputChange}
+              name="paymentDate"
               className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-white"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Payment Method</label>
+          <div className="space-y-1">
+            <label htmlFor="paymentMethod" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Payment Method
+            </label>
             <select
+              id="paymentMethod"
+              name="paymentMethod"
               value={formData.paymentMethod}
-              onChange={(e) => setFormData(prev => ({ ...prev, paymentMethod: e.target.value }))}
-              className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-white"
+              onChange={handleInputChange}
+              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-violet-500 focus:border-violet-500 sm:text-sm rounded-md dark:bg-gray-700 dark:text-white"
             >
               <option value="">Select a method</option>
               <option value="Mpesa">Mpesa</option>
@@ -199,11 +216,29 @@ export default function PaymentModal({ isOpen, onClose, payment }: PaymentModalP
             </select>
           </div>
 
+          {formData.paymentMethod === 'Mpesa' && (
+            <div className="space-y-1">
+              <label htmlFor="mpesa_code" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Mpesa Transaction Code
+              </label>
+              <input
+                type="text"
+                id="mpesa_code"
+                name="mpesa_code"
+                value={formData.mpesa_code}
+                onChange={handleInputChange}
+                placeholder="Enter Mpesa transaction code"
+                className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-violet-500 focus:border-violet-500 sm:text-sm dark:bg-gray-700 dark:text-white"
+              />
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
             <textarea
               value={formData.notes}
-              onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+              onChange={handleInputChange}
+              name="notes"
               className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-white"
               rows={3}
             />

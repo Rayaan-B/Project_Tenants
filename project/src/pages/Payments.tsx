@@ -65,7 +65,7 @@ function Payments() {
   };
 
   return (
-    <div className="space-y-8 p-4 sm:p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <div className="space-y-8 p-2 sm:p-6 bg-gray-50 dark:bg-gray-900 min-h-screen w-full max-w-full overflow-x-hidden">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-8">
         <div>
           <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 dark:text-white">Payments Overview</h1>
@@ -82,7 +82,7 @@ function Payments() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4 w-full">
         {/* Total Payments Card */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 transition-all duration-200 hover:shadow-md border border-gray-100 dark:border-gray-700">
           <div className="flex flex-col">
@@ -180,7 +180,7 @@ function Payments() {
         </div>
 
         {activeTab === 'list' ? (
-          <div className="overflow-x-auto">
+          <div className="w-full overflow-x-auto -mx-2 sm:mx-0">
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-800/50">
                 <tr>

@@ -58,8 +58,8 @@ function Layout() {
         <Menu className="h-6 w-6" />
       </button>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex gap-4">
+      <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8 py-8">
+        <div className="flex gap-2 sm:gap-4">
           {/* Sidebar for desktop */}
           <div className={`hidden md:flex flex-col gap-1 w-64 p-4 rounded-xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
             <div className="flex items-center justify-between mb-6">

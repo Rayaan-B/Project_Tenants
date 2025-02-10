@@ -62,6 +62,7 @@ export interface Payment {
   payment_date: string | null;
   status: 'pending' | 'paid' | 'overdue' | 'partial';
   payment_method: string | null;
+  mpesa_code: string | null;  // Added field for Mpesa transaction code
   notes: string | null;
   created_at: string;
   updated_at: string;

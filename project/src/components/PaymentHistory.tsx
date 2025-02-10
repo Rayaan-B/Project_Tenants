@@ -1,6 +1,7 @@
 import React from 'react';
 import { useStore } from '../lib/store';
 import { Tenant } from '../lib/types';
+import MonthlyPaymentBreakdown from './MonthlyPaymentBreakdown';
 
 type TenantPaymentSummary = {
   tenant: Tenant;
@@ -93,6 +94,8 @@ const PaymentHistory: React.FC = () => {
     return matchesSearch && matchesStatus;
   });
 
+  const [selectedTenant, setSelectedTenant] = React.useState<Tenant | null>(null);
+
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'paid':
@@ -106,136 +109,175 @@ const PaymentHistory: React.FC = () => {
     }
   };
 
+  const formatCurrency = (amount: number) => {
+    return `KES ${amount.toLocaleString()}`;
+  };
+
   if (loading) {
     return <div className="text-gray-600 dark:text-gray-400">Loading payment information...</div>;
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="flex-1">
-          <input
-            type="text"
-            placeholder="Search by tenant name or unit..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500 dark:focus:border-indigo-500"
-          />
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <input
+          type="text"
+          placeholder="Search by tenant name or unit number..."
+          className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:bg-gray-800 dark:text-white"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        <select
+          className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:bg-gray-800 dark:text-white"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
+          <option value="all">All Status</option>
+          <option value="paid">Paid</option>
+          <option value="partial">Partial</option>
+          <option value="unpaid">Unpaid</option>
+        </select>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+        {/* Mobile View */}
+        <div className="block sm:hidden">
+          {filteredSummaries.map((summary) => (
+            <div
+              key={summary.tenant.id}
+              className="p-4 border-b border-gray-200 dark:border-gray-700 space-y-3"
+              onClick={() => setSelectedTenant(summary.tenant)}
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                    {summary.tenant.tenant_name}
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Unit: {summary.tenant.unit?.unit_number}
+                  </p>
+                </div>
+                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(summary.paymentStatus)}`}>
+                  {summary.paymentStatus}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Total Due:</span>
+                  <br />
+                  <span className="text-gray-900 dark:text-white">{formatCurrency(summary.totalRentDue)}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Total Paid:</span>
+                  <br />
+                  <span className="text-gray-900 dark:text-white">{formatCurrency(summary.totalPaid)}</span>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center text-sm">
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Balance:</span>
+                  <br />
+                  <span className="text-gray-900 dark:text-white">{formatCurrency(summary.balance)}</span>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedTenant(summary.tenant);
+                  }}
+                  className="px-3 py-1 text-violet-600 hover:text-violet-900 dark:text-violet-400 dark:hover:text-violet-300 border border-violet-200 dark:border-violet-800 rounded-lg"
+                >
+                  View Details
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
-        <div>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full sm:w-auto px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 dark:focus:border-indigo-500"
-          >
-            <option value="all">All Statuses</option>
-            <option value="paid">Paid</option>
-            <option value="partial">Partial</option>
-            <option value="unpaid">Unpaid</option>
-          </select>
+
+        {/* Desktop View */}
+        <div className="hidden sm:block">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-900">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Tenant
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Unit
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Total Due
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Total Paid
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Balance
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {filteredSummaries.map((summary) => (
+                  <tr 
+                    key={summary.tenant.id}
+                    className="hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer"
+                    onClick={() => setSelectedTenant(summary.tenant)}
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      {summary.tenant.tenant_name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      {summary.tenant.unit?.unit_number}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      {formatCurrency(summary.totalRentDue)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      {formatCurrency(summary.totalPaid)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      {formatCurrency(summary.balance)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(summary.paymentStatus)}`}>
+                        {summary.paymentStatus}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedTenant(summary.tenant);
+                        }}
+                        className="text-violet-600 hover:text-violet-900 dark:text-violet-400 dark:hover:text-violet-300"
+                      >
+                        View Details
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-800/50">
-              <tr>
-                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Tenant
-                </th>
-                <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Monthly Rent
-                </th>
-                <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Total Due
-                </th>
-                <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Total Paid
-                </th>
-                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Balance
-                </th>
-                <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Last Payment
-                </th>
-                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {filteredSummaries.map((summary, index) => (
-                <tr
-                  key={summary.tenant.id}
-                  className={`${
-                    index % 2 === 0 ? 'bg-gray-50 dark:bg-gray-800/50' : 'bg-white dark:bg-gray-800'
-                  } hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors cursor-pointer`}
-                >
-                  <td className="px-3 sm:px-6 py-3 sm:py-4">
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">
-                      {summary.tenant.unit?.unit_number}
-                    </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                      {summary.tenant.tenant_name}
-                    </div>
-                    <div className="sm:hidden text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      Monthly: KES {summary.tenant.rent_amount.toLocaleString()}
-                    </div>
-                    <div className="sm:hidden text-xs text-gray-500 dark:text-gray-400">
-                      Due: KES {summary.totalRentDue.toLocaleString()}
-                    </div>
-                    <div className="sm:hidden text-xs text-gray-500 dark:text-gray-400">
-                      Paid: KES {summary.totalPaid.toLocaleString()}
-                    </div>
-                    <div className="sm:hidden text-xs text-gray-500 dark:text-gray-400">
-                      Last Payment: {summary.lastPaymentDate
-                        ? new Date(summary.lastPaymentDate).toLocaleDateString()
-                        : '-'}
-                    </div>
-                  </td>
-                  <td className="hidden sm:table-cell px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                    <div className="text-sm text-gray-900 dark:text-white">
-                      KES {summary.tenant.rent_amount.toLocaleString()}
-                    </div>
-                  </td>
-                  <td className="hidden sm:table-cell px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                    <div className="text-sm text-gray-900 dark:text-white">
-                      KES {summary.totalRentDue.toLocaleString()}
-                    </div>
-                  </td>
-                  <td className="hidden sm:table-cell px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                    <div className="text-sm text-gray-900 dark:text-white">
-                      KES {summary.totalPaid.toLocaleString()}
-                    </div>
-                  </td>
-                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-500 dark:text-gray-400">
-                    <div className="text-sm text-gray-900 dark:text-white">
-                      KES {summary.balance.toLocaleString()}
-                    </div>
-                  </td>
-                  <td className="hidden sm:table-cell px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                    <div className="text-sm text-gray-900 dark:text-white">
-                      {summary.lastPaymentDate
-                        ? new Date(summary.lastPaymentDate).toLocaleDateString()
-                        : '-'}
-                    </div>
-                  </td>
-                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-500 dark:text-gray-400">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getStatusColor(
-                        summary.paymentStatus
-                      )}`}
-                    >
-                      {summary.paymentStatus}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {selectedTenant && (
+        <div className="mt-6">
+          <MonthlyPaymentBreakdown
+            tenant={selectedTenant}
+            payments={payments.filter(p => p.tenant_id === selectedTenant.id)}
+          />
         </div>
-      </div>
+      )}
     </div>
   );
 };
