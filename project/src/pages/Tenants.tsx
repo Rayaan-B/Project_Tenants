@@ -37,26 +37,25 @@ function Tenants() {
   };
 
   return (
-    <div className={`space-y-8 p-4 sm:p-6 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'} min-h-screen`}>
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-8">
-        <div>
-          <h1 className={`text-2xl sm:text-4xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-            Tenants Overview
-          </h1>
-          <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'} mt-1`}>
-            Last updated: {new Date().toLocaleDateString()}
-          </div>
+    <div className={`p-6 pt-16 h-full ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+          Tenants Overview
+        </h1>
+        <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+          Last updated: {new Date().toLocaleDateString()}
         </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500"
-        >
-          <Plus className="h-5 w-5 mr-2" />
-          Add Tenant
-        </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <button
+        onClick={() => setIsModalOpen(true)}
+        className="w-full max-w-sm mx-auto mb-6 inline-flex items-center justify-center px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500"
+      >
+        <Plus className="h-5 w-5 mr-2" />
+        Add Tenant
+      </button>
+
+      <div className="grid grid-cols-1 gap-4 max-w-sm mx-auto">
         {/* Total Tenants Card */}
         <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} 
           rounded-xl shadow-sm p-6 transition-all duration-200 hover:shadow-md border`}>
@@ -119,7 +118,7 @@ function Tenants() {
       </div>
 
       <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} 
-        rounded-xl shadow-sm overflow-hidden border`}>
+        rounded-xl shadow-sm overflow-hidden border max-w-7xl mx-auto mt-8`}>
         <div className={`p-4 sm:p-6 border-b ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
           <h2 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
             Tenant List

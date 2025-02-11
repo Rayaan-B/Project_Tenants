@@ -6,51 +6,67 @@ import Dashboard from './pages/Dashboard';
 import Tenants from './pages/Tenants';
 import Payments from './pages/Payments';
 import Properties from './pages/Properties';
+import Settings from './pages/Settings';
 import Login from './pages/Login';
 import { useStore } from './lib/store';
 import { supabase } from './lib/supabase';
+import { Profile } from './lib/types';
 
 function App() {
-  const { user, setUser, darkMode } = useStore();
+  const { user, setUser } = useStore();
 
   React.useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-        
-        if (profile) {
-          setUser(profile);
-        }
+        const profile: Profile = {
+          id: session.user.id,
+          email: session.user.email ?? '',
+          role: 'admin', // Default role, you might want to fetch this from your profiles table
+          full_name: null,
+          phone: null,
+          created_at: session.user.created_at,
+          updated_at: new Date().toISOString()
+        };
+        setUser(profile);
+      } else {
+        setUser(null);
       }
-    };
+    });
 
-    checkSession();
-  }, [setUser]);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        const profile: Profile = {
+          id: session.user.id,
+          email: session.user.email ?? '',
+          role: 'admin', // Default role, you might want to fetch this from your profiles table
+          full_name: null,
+          phone: null,
+          created_at: session.user.created_at,
+          updated_at: new Date().toISOString()
+        };
+        setUser(profile);
+      } else {
+        setUser(null);
+      }
+    });
 
-  React.useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <Router>
       <Toaster position="top-right" />
       <Routes>
-        <Route path="/login" element={!user ? <Login /> : <Navigate to="/" replace />} />
-        
-        <Route element={<Layout />}>
-          <Route path="/" element={user ? <Dashboard /> : <Navigate to="/login" replace />} />
-          <Route path="/tenants" element={user ? <Tenants /> : <Navigate to="/login" replace />} />
-          <Route path="/payments" element={user ? <Payments /> : <Navigate to="/login" replace />} />
-          <Route path="/properties" element={user ? <Properties /> : <Navigate to="/login" replace />} />
+        <Route path="/" element={<Layout />}>
+          <Route index element={user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />} />
+          <Route path="login" element={!user ? <Login /> : <Navigate to="/dashboard" replace />} />
+          <Route path="dashboard" element={user ? <Dashboard /> : <Navigate to="/login" replace />} />
+          <Route path="tenants" element={user ? <Tenants /> : <Navigate to="/login" replace />} />
+          <Route path="payments" element={user ? <Payments /> : <Navigate to="/login" replace />} />
+          <Route path="properties" element={user ? <Properties /> : <Navigate to="/login" replace />} />
+          <Route path="settings" element={user ? <Settings /> : <Navigate to="/login" replace />} />
         </Route>
       </Routes>
     </Router>

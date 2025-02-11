@@ -65,24 +65,21 @@ function Payments() {
   };
 
   return (
-    <div className="space-y-8 p-2 sm:p-6 bg-gray-50 dark:bg-gray-900 min-h-screen w-full max-w-full overflow-x-hidden">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-8">
-        <div>
-          <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 dark:text-white">Payments Overview</h1>
-          <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Last updated: {new Date().toLocaleDateString()}
-          </div>
-        </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500"
-        >
-          <Plus className="h-5 w-5 mr-2" />
-          Add Payment
-        </button>
+    <div className="p-6 pt-16 h-full bg-gray-50 dark:bg-gray-900 min-h-screen">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Payments Overview</h1>
+        <div className="text-sm text-gray-500 dark:text-gray-400">Last updated: {new Date().toLocaleDateString()}</div>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4 w-full">
+      <button
+        onClick={() => setIsModalOpen(true)}
+        className="w-full max-w-sm mx-auto mb-6 inline-flex items-center justify-center px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500"
+      >
+        <Plus className="h-5 w-5 mr-2" />
+        Add Payment
+      </button>
+
+      <div className="grid grid-cols-1 gap-4 max-w-sm mx-auto">
         {/* Total Payments Card */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 transition-all duration-200 hover:shadow-md border border-gray-100 dark:border-gray-700">
           <div className="flex flex-col">
@@ -153,7 +150,7 @@ function Payments() {
       </div>
 
       {/* Tabs */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden max-w-7xl mx-auto mt-8">
         <div className="border-b border-gray-100 dark:border-gray-700">
           <nav className="flex space-x-4 sm:space-x-8 px-4 sm:px-6">
             <button
