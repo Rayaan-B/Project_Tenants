@@ -1,0 +1,45 @@
+{
+  "short_name": "Tenants",
+  "name": "Tenants Manager",
+  "description": "Manage your tenants, payments, and properties",
+  "icons": [
+    {
+      "src": "/Project_Tenants/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/Project_Tenants/logo192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/Project_Tenants/logo512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "id": "/Project_Tenants/",
+  "start_url": "/Project_Tenants/",
+  "scope": "/Project_Tenants/",
+  "display": "standalone",
+  "theme_color": "#8b5cf6",
+  "background_color": "#1f2937",
+  "orientation": "portrait",
+  "categories": ["business", "productivity"],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "url": "/Project_Tenants/dashboard",
+      "description": "View your dashboard"
+    },
+    {
+      "name": "Tenants",
+      "url": "/Project_Tenants/tenants",
+      "description": "Manage your tenants"
+    }
+  ]
+}
