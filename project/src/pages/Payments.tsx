@@ -180,8 +180,68 @@ function Payments() {
         </div>
 
         {activeTab === 'list' ? (
-          <div className="w-full overflow-x-auto -mx-2 sm:mx-0">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <div className="w-full overflow-x-auto">
+            <div className="block sm:hidden">
+              {/* Mobile View */}
+              <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                {payments.map((payment) => (
+                  <div key={payment.id} className="p-4 space-y-2">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                          Room {payment.tenant?.unit?.unit_number}
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          {payment.tenant?.tenant_name}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                          {formatCurrency(payment.amount)}
+                        </div>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(payment.status)}`}>
+                          {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
+                      <div className="space-y-1">
+                        <div>Due: {new Date(payment.due_date).toLocaleDateString()}</div>
+                        {payment.payment_date && (
+                          <div>Paid: {new Date(payment.payment_date).toLocaleDateString()}</div>
+                        )}
+                        {payment.payment_method && (
+                          <div>Via: {payment.payment_method}</div>
+                        )}
+                        {payment.mpesa_code && (
+                          <div className="text-violet-600 dark:text-violet-400">
+                            Mpesa: {payment.mpesa_code}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <button
+                          onClick={() => handleEdit(payment)}
+                          className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(payment)}
+                          className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Desktop View */}
+            <table className="hidden sm:table min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-800/50">
                 <tr>
                   <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Payment, Tenant } from '../lib/types';
 import { formatCurrency } from '../utils/currency';
 
@@ -100,81 +100,107 @@ export const MonthlyPaymentBreakdown: React.FC<MonthlyPaymentBreakdownProps> = (
     }
   };
 
+  const breakdownRef = useRef<HTMLDivElement>(null);
   const monthlyRecords = getMonthlyBreakdown();
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-      <div className="px-4 py-5 sm:px-6">
+    <div ref={breakdownRef} className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+      <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
         <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-          Monthly Payment Breakdown - {tenant.tenant_name}
+          Monthly Payment Breakdown
         </h3>
+        <div className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+          {tenant.tenant_name} - Room {tenant.unit?.unit_number}
+        </div>
       </div>
-      <div className="border-t border-gray-200 dark:border-gray-700">
+
+      <div className="divide-y divide-gray-200 dark:divide-gray-700">
         {/* Mobile View */}
         <div className="block sm:hidden">
-          {monthlyRecords.map((record, idx) => (
-            <div 
-              key={idx}
-              className="p-4 border-b border-gray-200 dark:border-gray-700 space-y-3"
-            >
-              <div className="flex justify-between items-center">
-                <span className="font-medium text-gray-900 dark:text-white">{record.month}</span>
-                <span className={`px-2 text-xs font-semibold rounded-full ${getStatusColor(record.status)}`}>
-                  {record.status}
-                </span>
-              </div>
-              
-              <div>
-                <span className="text-gray-500 dark:text-gray-400">Expected:</span>
-                <br />
-                <span className="text-gray-900 dark:text-white">{formatCurrency(record.expectedAmount)}</span>
-              </div>
+          <div className="divide-y divide-gray-200 dark:divide-gray-700">
+            {monthlyRecords.map((record, idx) => (
+              <div key={idx} className="p-4 space-y-4 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-150">
+                {/* Month and Status Header */}
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
+                    <div className="text-base font-medium text-gray-900 dark:text-white">
+                      {record.month}
+                    </div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                      Expected: {formatCurrency(record.expectedAmount)}
+                    </div>
+                  </div>
+                  <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${getStatusColor(record.status)}`}>
+                    {record.status}
+                  </span>
+                </div>
 
-              <div>
-                <span className="text-gray-500 dark:text-gray-400">Payments:</span>
-                {record.payments.length > 0 ? (
-                  <div className="mt-1 space-y-2">
-                    {record.payments.map((payment, pidx) => (
-                      <div key={pidx} className="bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg space-y-2">
-                        <div className="flex justify-between items-start">
-                          <div className="text-sm">
-                            <div className="text-gray-900 dark:text-white">{formatCurrency(payment.amount)}</div>
-                            <div className="text-gray-500 dark:text-gray-400 text-xs">{payment.date}</div>
+                {/* Payments Section */}
+                <div className="space-y-3">
+                  <div className="text-sm font-medium text-gray-700 dark:text-gray-300">Payments</div>
+                  {record.payments.length > 0 ? (
+                    <div className="space-y-2">
+                      {record.payments.map((payment, pidx) => (
+                        <div key={pidx} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 space-y-2">
+                          {/* Amount and Date */}
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                {formatCurrency(payment.amount)}
+                              </div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400">
+                                {payment.date}
+                              </div>
+                            </div>
+                            {payment.method && (
+                              <div className="text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-600/50 px-2 py-1 rounded">
+                                {payment.method}
+                              </div>
+                            )}
                           </div>
-                          {payment.method && (
-                            <div className="text-xs text-gray-500 dark:text-gray-400">
-                              {payment.method}
+
+                          {/* Mpesa Code */}
+                          {payment.mpesa_code && (
+                            <div className="text-xs bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300 p-2 rounded">
+                              Mpesa Code: {payment.mpesa_code}
+                            </div>
+                          )}
+
+                          {/* Notes */}
+                          {payment.notes && (
+                            <div className="text-xs bg-gray-100 dark:bg-gray-600/50 text-gray-600 dark:text-gray-300 p-2 rounded">
+                              Note: {payment.notes}
                             </div>
                           )}
                         </div>
-                        {payment.mpesa_code && (
-                          <div className="text-xs bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300 p-1.5 rounded">
-                            Mpesa Code: {payment.mpesa_code}
-                          </div>
-                        )}
-                        {payment.notes && (
-                          <div className="text-xs bg-gray-100 dark:bg-gray-600/50 text-gray-600 dark:text-gray-300 p-1.5 rounded">
-                            Note: {payment.notes}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">No payments</div>
-                )}
-              </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
+                      No payments recorded
+                    </div>
+                  )}
+                </div>
 
-              <div className="text-sm">
-                <span className="text-gray-500 dark:text-gray-400">Balance:</span>
-                <br />
-                <span className="text-gray-900 dark:text-white">
-                  {formatCurrency(Math.abs(record.balance))}
-                  {record.balance > 0 ? ' (Due)' : ''}
-                </span>
+                {/* Summary Section */}
+                <div className="grid grid-cols-2 gap-3 mt-2">
+                  <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+                    <div className="text-xs text-gray-500 dark:text-gray-400">Total Paid</div>
+                    <div className="text-sm font-medium text-gray-900 dark:text-white mt-1">
+                      {formatCurrency(record.totalPaid)}
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+                    <div className="text-xs text-gray-500 dark:text-gray-400">Balance</div>
+                    <div className="text-sm font-medium text-gray-900 dark:text-white mt-1">
+                      {formatCurrency(Math.abs(record.balance))}
+                      {record.balance > 0 ? ' (Due)' : ''}
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* Desktop View */}

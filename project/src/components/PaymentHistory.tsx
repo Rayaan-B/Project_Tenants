@@ -16,6 +16,25 @@ const PaymentHistory: React.FC = () => {
   const { payments, tenants, fetchPayments, fetchTenants, loading } = useStore();
   const [searchQuery, setSearchQuery] = React.useState('');
   const [statusFilter, setStatusFilter] = React.useState<string>('all');
+  const [selectedTenant, setSelectedTenant] = React.useState<Tenant | null>(null);
+  const [showBackButton, setShowBackButton] = React.useState(false);
+  const paymentHistoryRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      if (paymentHistoryRef.current) {
+        const historyRect = paymentHistoryRef.current.getBoundingClientRect();
+        setShowBackButton(historyRect.bottom < 0);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const handleBackToHistory = () => {
+    paymentHistoryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   React.useEffect(() => {
     fetchPayments();
@@ -94,7 +113,16 @@ const PaymentHistory: React.FC = () => {
     return matchesSearch && matchesStatus;
   });
 
-  const [selectedTenant, setSelectedTenant] = React.useState<Tenant | null>(null);
+  const handleViewBreakdown = (tenant: Tenant) => {
+    setSelectedTenant(tenant);
+    // Add small delay to ensure component is rendered before scrolling
+    setTimeout(() => {
+      const breakdownElement = document.querySelector('[data-breakdown]');
+      if (breakdownElement) {
+        breakdownElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -119,16 +147,17 @@ const PaymentHistory: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+      {/* Search and Filter Controls */}
+      <div ref={paymentHistoryRef} className="flex flex-col gap-3">
         <input
           type="text"
           placeholder="Search by tenant name or unit number..."
-          className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:bg-gray-800 dark:text-white"
+          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:bg-gray-800 dark:text-white text-sm"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
         <select
-          className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:bg-gray-800 dark:text-white"
+          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:bg-gray-800 dark:text-white text-sm bg-white dark:bg-gray-800"
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
         >
@@ -139,58 +168,72 @@ const PaymentHistory: React.FC = () => {
         </select>
       </div>
 
+      {/* Payment History Cards */}
       <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
         {/* Mobile View */}
-        <div className="block sm:hidden">
+        <div className="block sm:hidden divide-y divide-gray-200 dark:divide-gray-700">
           {filteredSummaries.map((summary) => (
             <div
               key={summary.tenant.id}
-              className="p-4 border-b border-gray-200 dark:border-gray-700 space-y-3"
-              onClick={() => setSelectedTenant(summary.tenant)}
+              className="p-4 space-y-4 active:bg-gray-50 dark:active:bg-gray-700/50"
             >
+              {/* Header */}
               <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                <div className="space-y-1">
+                  <div className="text-base font-medium text-gray-900 dark:text-white">
+                    Room {summary.tenant.unit?.unit_number}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
                     {summary.tenant.tenant_name}
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Unit: {summary.tenant.unit?.unit_number}
-                  </p>
+                  </div>
                 </div>
-                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(summary.paymentStatus)}`}>
+                <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${getStatusColor(summary.paymentStatus)}`}>
                   {summary.paymentStatus}
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>
-                  <span className="text-gray-500 dark:text-gray-400">Total Due:</span>
-                  <br />
-                  <span className="text-gray-900 dark:text-white">{formatCurrency(summary.totalRentDue)}</span>
+              {/* Payment Details */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Total Due</div>
+                  <div className="text-sm font-medium text-gray-900 dark:text-white mt-1">
+                    {formatCurrency(summary.totalRentDue)}
+                  </div>
                 </div>
-                <div>
-                  <span className="text-gray-500 dark:text-gray-400">Total Paid:</span>
-                  <br />
-                  <span className="text-gray-900 dark:text-white">{formatCurrency(summary.totalPaid)}</span>
+                <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Total Paid</div>
+                  <div className="text-sm font-medium text-gray-900 dark:text-white mt-1">
+                    {formatCurrency(summary.totalPaid)}
+                  </div>
                 </div>
               </div>
 
-              <div className="flex justify-between items-center text-sm">
-                <div>
-                  <span className="text-gray-500 dark:text-gray-400">Balance:</span>
-                  <br />
-                  <span className="text-gray-900 dark:text-white">{formatCurrency(summary.balance)}</span>
+              {/* Balance and Last Payment */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Balance:</div>
+                  <div className="text-sm font-medium text-gray-900 dark:text-white">
+                    {formatCurrency(Math.abs(summary.balance))}
+                    {summary.balance > 0 ? ' (Due)' : ''}
+                  </div>
                 </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedTenant(summary.tenant);
-                  }}
-                  className="px-3 py-1 text-violet-600 hover:text-violet-900 dark:text-violet-400 dark:hover:text-violet-300 border border-violet-200 dark:border-violet-800 rounded-lg"
-                >
-                  View Details
-                </button>
+                {summary.lastPaymentDate && (
+                  <div className="flex justify-between items-center">
+                    <div className="text-sm text-gray-500 dark:text-gray-400">Last Payment:</div>
+                    <div className="text-sm text-gray-900 dark:text-white">
+                      {new Date(summary.lastPaymentDate).toLocaleDateString()}
+                    </div>
+                  </div>
+                )}
               </div>
+
+              {/* View Details Button */}
+              <button
+                onClick={() => handleViewBreakdown(summary.tenant)}
+                className="w-full mt-2 px-4 py-2 bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300 text-sm font-medium rounded-lg hover:bg-violet-100 dark:hover:bg-violet-900/30 transition-colors duration-200"
+              >
+                View Monthly Breakdown
+              </button>
             </div>
           ))}
         </div>
@@ -229,7 +272,7 @@ const PaymentHistory: React.FC = () => {
                   <tr 
                     key={summary.tenant.id}
                     className="hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer"
-                    onClick={() => setSelectedTenant(summary.tenant)}
+                    onClick={() => handleViewBreakdown(summary.tenant)}
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                       {summary.tenant.tenant_name}
@@ -255,7 +298,7 @@ const PaymentHistory: React.FC = () => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          setSelectedTenant(summary.tenant);
+                          handleViewBreakdown(summary.tenant);
                         }}
                         className="text-violet-600 hover:text-violet-900 dark:text-violet-400 dark:hover:text-violet-300"
                       >
@@ -270,13 +313,37 @@ const PaymentHistory: React.FC = () => {
         </div>
       </div>
 
+      {/* Monthly Breakdown Section */}
       {selectedTenant && (
-        <div className="mt-6">
+        <div data-breakdown>
           <MonthlyPaymentBreakdown
             tenant={selectedTenant}
             payments={payments.filter(p => p.tenant_id === selectedTenant.id)}
           />
         </div>
+      )}
+
+      {/* Floating Back Button */}
+      {showBackButton && selectedTenant && (
+        <button
+          onClick={handleBackToHistory}
+          className="fixed bottom-6 right-6 z-50 p-3 bg-violet-600 hover:bg-violet-700 text-white rounded-full shadow-lg transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5"
+        >
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M5 10l7-7m0 0l7 7m-7-7v18"
+            />
+          </svg>
+        </button>
       )}
     </div>
   );

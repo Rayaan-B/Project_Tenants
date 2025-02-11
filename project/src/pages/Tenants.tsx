@@ -125,7 +125,88 @@ function Tenants() {
             Tenant List
           </h2>
         </div>
-        <div className="overflow-x-auto">
+
+        {/* Mobile View */}
+        <div className="block sm:hidden">
+          <div className="divide-y divide-gray-200 dark:divide-gray-700">
+            {tenants.map((tenant) => (
+              <div
+                key={tenant.id}
+                className={`p-4 ${darkMode ? 'hover:bg-gray-700/50' : 'hover:bg-gray-50'} transition-colors duration-150`}
+              >
+                {/* Header with Name and Status */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="space-y-1">
+                    <div className={`text-base font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {tenant.tenant_name}
+                    </div>
+                    <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {tenant.tenant_phone || 'No phone number'}
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className={`px-2.5 py-1 text-xs font-medium rounded-full 
+                      ${new Date(tenant.lease_end) > new Date() 
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
+                        : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'}`}
+                    >
+                      {new Date(tenant.lease_end) > new Date() ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Details Grid */}
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
+                    <div className={`text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      Room
+                    </div>
+                    <div className={`text-sm font-medium mt-0.5 ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+                      {tenant.unit?.unit_number}
+                    </div>
+                  </div>
+                  <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
+                    <div className={`text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      Rent
+                    </div>
+                    <div className={`text-sm font-medium mt-0.5 ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+                      {formatCurrency(tenant.rent_amount || 0)}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Lease Period */}
+                <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700/50' : 'bg-gray-50'} mb-3`}>
+                  <div className={`text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    Lease Period
+                  </div>
+                  <div className={`text-sm font-medium mt-0.5 ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+                    {new Date(tenant.lease_start).toLocaleDateString()} - {new Date(tenant.lease_end).toLocaleDateString()}
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-end space-x-2">
+                  <button
+                    onClick={() => handleEdit(tenant)}
+                    className="p-2 text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300"
+                  >
+                    <Edit className="h-5 w-5" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(tenant)}
+                    className="p-2 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Desktop View */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className={darkMode ? 'bg-gray-700' : 'bg-gray-50'}>
               <tr>
@@ -159,7 +240,7 @@ function Tenants() {
                           {tenant.tenant_name}
                         </div>
                         <div className={`text-xs sm:text-sm truncate ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                          {tenant.tenant_email}
+                          {tenant.tenant_phone || 'No phone number'}
                         </div>
                         <div className="sm:hidden mt-1 space-y-0.5">
                           <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
