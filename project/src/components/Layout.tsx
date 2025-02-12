@@ -1,22 +1,25 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useStore } from '../lib/store';
+import { useNetwork } from '../contexts/NetworkStatus';
 import { 
   LayoutDashboard, 
   Users, 
-  Building2, 
-  CreditCard,
-  LogOut,
+  Receipt, 
+  Home,
   Menu,
-  Sun,
+  X,
+  LogOut,
   Moon,
-  Settings,
+  Sun,
   Download
 } from 'lucide-react';
 
 function Layout() {
   const { logout, darkMode, toggleDarkMode, user } = useStore();
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isOnline } = useNetwork();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
@@ -74,6 +77,14 @@ function Layout() {
     document.documentElement.classList.toggle('dark', darkMode);
   }, [darkMode]);
 
+  useEffect(() => {
+    if (!isOnline && location.pathname !== '/offline') {
+      navigate('/offline');
+    } else if (isOnline && location.pathname === '/offline') {
+      navigate(-1); // Go back to previous page when back online
+    }
+  }, [isOnline, location.pathname]);
+
   const handleInstall = async () => {
     if (!deferredPrompt) {
       setInstallError('Install prompt not available');
@@ -103,9 +114,9 @@ function Layout() {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Tenants', href: '/tenants', icon: Users },
-    { name: 'Properties', href: '/properties', icon: Building2 },
-    { name: 'Payments', href: '/payments', icon: CreditCard },
-    { name: 'Settings', href: '/settings', icon: Settings },
+    { name: 'Properties', href: '/properties', icon: Home },
+    { name: 'Payments', href: '/payments', icon: Receipt },
+    { name: 'Settings', href: '/settings', icon: Sun },
   ];
 
   const isActive = (path: string) => location.pathname === path;
