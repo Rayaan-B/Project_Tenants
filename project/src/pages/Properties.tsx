@@ -1,6 +1,6 @@
 import React from 'react';
 import { useStore } from '../lib/store';
-import { Plus, Building2, Home, Percent } from 'lucide-react';
+import { Plus, Building2, Home, Percent, Edit, MoreVertical } from 'lucide-react';
 import PropertyModal from '../components/PropertyModal';
 import UnitModal from '../components/UnitModal';
 import PropertyDetailsModal from '../components/PropertyDetailsModal';
@@ -13,6 +13,7 @@ function Properties() {
   const [isUnitModalOpen, setIsUnitModalOpen] = React.useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = React.useState(false);
   const [selectedProperty, setSelectedProperty] = React.useState<Property | null>(null);
+  const [propertyToEdit, setPropertyToEdit] = React.useState<Property | null>(null);
 
   React.useEffect(() => {
     fetchProperties();
@@ -28,10 +29,20 @@ function Properties() {
     setIsDetailsModalOpen(true);
   };
 
+  const handleEditProperty = (property: Property) => {
+    setPropertyToEdit(property);
+    setIsPropertyModalOpen(true);
+  };
+
+  const handleAddProperty = () => {
+    setPropertyToEdit(null);
+    setIsPropertyModalOpen(true);
+  };
+
   const calculateOccupancyRate = () => {
     const totalUnits = properties.reduce((sum, p) => sum + (p.units?.length || 0), 0);
     const occupiedUnits = properties.reduce((sum, p) => 
-      sum + (p.units?.filter(u => u.tenant_id)?.length || 0), 0);
+      sum + (p.units?.filter(u => u.status === 'occupied')?.length || 0), 0);
     return totalUnits ? `${Math.round((occupiedUnits / totalUnits) * 100)}%` : '0%';
   };
 
@@ -45,7 +56,7 @@ function Properties() {
           </div>
         </div>
         <button
-          onClick={() => setIsPropertyModalOpen(true)}
+          onClick={handleAddProperty}
           className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500"
         >
           <Plus className="h-5 w-5 mr-2" />
@@ -117,9 +128,17 @@ function Properties() {
                       <Building2 className="h-6 sm:h-8 w-6 sm:w-8 text-gray-400 dark:text-gray-500" />
                     </div>
                     <div className="ml-3 sm:ml-4 min-w-0 flex-1">
-                      <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white truncate">
-                        {property.name}
-                      </h3>
+                      <div className="flex justify-between items-start">
+                        <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white truncate">
+                          {property.name}
+                        </h3>
+                        <button 
+                          onClick={() => handleEditProperty(property)}
+                          className="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                      </div>
                       <p className="mt-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">
                         {property.address}
                       </p>
@@ -135,11 +154,11 @@ function Properties() {
                         </div>
                         <span className="mx-2 text-gray-300 dark:text-gray-600">•</span>
                         <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
-                          {property.units?.filter(u => u.tenant_id)?.length || 0} Occupied
+                          {property.units?.filter(u => u.status === 'occupied')?.length || 0} Occupied
                         </span>
                       </div>
                       <div className="mt-1 text-sm font-medium text-gray-900 dark:text-white">
-                        {formatCurrency(property.expected_rent || 0)}
+                        {formatCurrency(property.units?.reduce((sum, unit) => sum + unit.rent_amount, 0) || 0)}
                       </div>
                     </div>
                   </div>
@@ -172,7 +191,7 @@ function Properties() {
             <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Total Expected Rent</div>
             <div className="flex items-center justify-between">
               <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                {formatCurrency(properties.reduce((sum, property) => sum + (property.expected_rent || 0), 0))}
+                {formatCurrency(properties.reduce((sum, property) => sum + (property.units?.reduce((sum, unit) => sum + unit.rent_amount, 0) || 0), 0))}
               </div>
               <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                 <Building2 className="w-6 h-6 text-blue-600 dark:text-blue-400" />
@@ -184,7 +203,11 @@ function Properties() {
 
       <PropertyModal
         isOpen={isPropertyModalOpen}
-        onClose={() => setIsPropertyModalOpen(false)}
+        onClose={() => {
+          setIsPropertyModalOpen(false);
+          setPropertyToEdit(null);
+        }}
+        property={propertyToEdit || undefined}
       />
 
       {selectedProperty && (

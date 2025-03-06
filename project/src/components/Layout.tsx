@@ -49,16 +49,26 @@ function Layout() {
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gradient-to-br from-slate-50 to-blue-50'}`}>
-      {/* Mobile menu button - Fixed position */}
-      <button
-        ref={menuButtonRef}
-        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className={`md:hidden fixed top-4 left-4 z-50 p-2 rounded-lg ${darkMode ? 'hover:bg-gray-800 bg-gray-900' : 'hover:bg-gray-100 bg-white'} shadow-md`}
-      >
-        <Menu className="h-6 w-6" />
-      </button>
+      {/* Mobile menu button */}
+      <div className={`md:hidden flex items-center justify-between p-4 ${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
+        <button
+          ref={menuButtonRef}
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="p-1"
+        >
+          <Menu className="h-6 w-6" />
+        </button>
+        <h2 className="font-semibold text-xl">Dashboard</h2>
+        <button
+          onClick={toggleDarkMode}
+          className="p-1"
+          aria-label="Toggle dark mode"
+        >
+          {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+        </button>
+      </div>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto max-w-7xl md:px-4 md:py-8">
         <div className="flex gap-4">
           {/* Sidebar for desktop */}
           <div className={`hidden md:flex flex-col gap-1 w-64 p-4 rounded-xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
@@ -109,18 +119,16 @@ function Layout() {
           {isMobileMenuOpen && (
             <div
               ref={sidebarRef}
-              className={`fixed top-0 left-0 z-40 h-full w-64 p-4 ${
-                darkMode ? 'bg-gray-800' : 'bg-white'
-              } shadow-lg md:hidden flex flex-col`}
+              className={`fixed top-0 left-0 z-40 h-full w-64 p-4 ${darkMode ? 'bg-gray-900' : 'bg-white'} shadow-lg md:hidden flex flex-col`}
             >
               <div className="flex items-center justify-between mb-6 pl-10">
-                <h2 className="font-semibold text-xl">Dashboard</h2>
+                <h2 className={`font-semibold text-xl ${darkMode ? 'text-white' : 'text-gray-900'}`}>Dashboard</h2>
                 <button
                   onClick={toggleDarkMode}
                   className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
                   aria-label="Toggle dark mode"
                 >
-                  {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                  {darkMode ? <Sun className={`h-5 w-5 ${darkMode ? 'text-white' : 'text-gray-900'}`} /> : <Moon className={`h-5 w-5 ${darkMode ? 'text-white' : 'text-gray-900'}`} />}
                 </button>
               </div>
 
@@ -162,7 +170,7 @@ function Layout() {
 
           {/* Main content */}
           <div className="flex-1">
-            <main className="py-6 px-4 sm:px-6 lg:px-8 md:mt-0">
+            <main className={`${isMobileMenuOpen ? 'blur-sm' : ''} md:py-6 md:px-4 md:mt-0`}>
               <Outlet />
             </main>
           </div>

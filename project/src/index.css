@@ -1,3 +1,39 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+  overflow-anchor: none; /* Disable scroll anchoring */
+}
+
+body {
+  overflow-anchor: none; /* Disable scroll anchoring */
+}
+
+/* Prevent scroll jumping for tab content */
+.tab-content {
+  contain: paint;
+}
+
+/* Fix for payment history container */
+.payment-history-container {
+  height: auto !important; /* Override the inline height */
+  min-height: 400px; /* Provide minimum height to prevent layout shifts */
+  position: relative;
+  contain: layout;
+}
+
+/* Ensure tab content doesn't cause layout shifts */
+[role="tabpanel"] {
+  position: relative;
+  width: 100%;
+}
+
+/* Hide content but keep it in the document flow */
+.hidden {
+  visibility: hidden;
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}

@@ -20,6 +20,7 @@ export default function PaymentModal({ isOpen, onClose, payment }: PaymentModalP
     dueDate: '',
     paymentDate: '',
     paymentMethod: '',
+    mpesaCode: '',
     notes: '',
     paymentReminder: false
   });
@@ -41,6 +42,7 @@ export default function PaymentModal({ isOpen, onClose, payment }: PaymentModalP
         dueDate: payment.due_date,
         paymentDate: payment.payment_date || '',
         paymentMethod: payment.payment_method || '',
+        mpesaCode: payment.mpesa_code || '',
         notes: payment.notes || '',
         paymentReminder: false
       });
@@ -51,6 +53,7 @@ export default function PaymentModal({ isOpen, onClose, payment }: PaymentModalP
         dueDate: '',
         paymentDate: '',
         paymentMethod: '',
+        mpesaCode: '',
         notes: '',
         paymentReminder: false
       });
@@ -80,6 +83,7 @@ export default function PaymentModal({ isOpen, onClose, payment }: PaymentModalP
             due_date: formData.dueDate,
             payment_date: formData.paymentDate || null,
             payment_method: formData.paymentMethod || null,
+            mpesa_code: formData.paymentMethod === 'Mpesa' ? formData.mpesaCode || null : null,
             notes: formData.notes || null,
             status: formData.paymentDate ? 'paid' : 'pending'
           })
@@ -97,6 +101,7 @@ export default function PaymentModal({ isOpen, onClose, payment }: PaymentModalP
             due_date: formData.dueDate,
             payment_date: formData.paymentDate || null,
             payment_method: formData.paymentMethod || null,
+            mpesa_code: formData.paymentMethod === 'Mpesa' ? formData.mpesaCode || null : null,
             notes: formData.notes || null,
             status: formData.paymentDate ? 'paid' : 'pending'
           });
@@ -198,6 +203,19 @@ export default function PaymentModal({ isOpen, onClose, payment }: PaymentModalP
               <option value="Bank Transfer">Bank Transfer</option>
             </select>
           </div>
+
+          {formData.paymentMethod === 'Mpesa' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Mpesa Code</label>
+              <input
+                type="text"
+                placeholder="e.g. TB91CNM6XP"
+                value={formData.mpesaCode}
+                onChange={(e) => setFormData(prev => ({ ...prev, mpesaCode: e.target.value }))}
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-white"
+              />
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>

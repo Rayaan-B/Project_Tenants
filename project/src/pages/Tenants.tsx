@@ -10,9 +10,25 @@ function Tenants() {
   const { tenants, fetchTenants, deleteTenant, darkMode } = useStore();
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [selectedTenant, setSelectedTenant] = React.useState<Tenant | undefined>();
+  const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
-    fetchTenants();
+    const loadData = async () => {
+      setIsLoading(true);
+      await fetchTenants();
+      setIsLoading(false);
+    };
+    
+    loadData();
+    
+    // Set up a refresh interval to periodically check for new data
+    const refreshInterval = setInterval(() => {
+      fetchTenants();
+    }, 30000); // Refresh every 30 seconds
+    
+    return () => {
+      clearInterval(refreshInterval);
+    };
   }, [fetchTenants]);
 
   const handleEdit = (tenant: Tenant) => {
@@ -23,10 +39,16 @@ function Tenants() {
   const handleDelete = async (tenant: Tenant) => {
     if (window.confirm('Are you sure you want to delete this tenant?')) {
       try {
+        setIsLoading(true);
         await deleteTenant(tenant.id);
+        // Force a refresh of the tenants list
+        await fetchTenants();
+        setIsLoading(false);
         toast.success('Tenant deleted successfully');
       } catch (error) {
+        setIsLoading(false);
         toast.error('Error deleting tenant');
+        console.error('Error deleting tenant:', error);
       }
     }
   };
@@ -118,6 +140,7 @@ function Tenants() {
         </div>
       </div>
 
+      {/* Tenant List */}
       <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} 
         rounded-xl shadow-sm overflow-hidden border`}>
         <div className={`p-4 sm:p-6 border-b ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
@@ -125,73 +148,28 @@ function Tenants() {
             Tenant List
           </h2>
         </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className={darkMode ? 'bg-gray-700' : 'bg-gray-50'}>
-              <tr>
-                <th className={`px-3 sm:px-6 py-3 text-left text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>
-                  Name & Details
-                </th>
-                <th className={`hidden sm:table-cell px-6 py-3 text-left text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>
-                  Unit
-                </th>
-                <th className={`hidden sm:table-cell px-6 py-3 text-left text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>
-                  Lease Period
-                </th>
-                <th className={`hidden sm:table-cell px-6 py-3 text-left text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>
-                  Rent Amount
-                </th>
-                <th className={`px-3 sm:px-6 py-3 text-left text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider w-20`}>
-                  Status
-                </th>
-                <th className={`px-2 sm:px-6 py-3 text-right text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider w-16`}>
-                  <span className="sr-only">Actions</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody className={`${darkMode ? 'bg-gray-800' : 'bg-white'} divide-y ${darkMode ? 'divide-gray-700' : 'divide-gray-200'}`}>
-              {tenants.map((tenant) => (
-                <tr key={tenant.id} className={`${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'} transition-colors duration-150`}>
-                  <td className="px-3 sm:px-6 py-4">
-                    <div className="flex items-start">
-                      <div className="min-w-0">
-                        <div className={`text-sm font-medium truncate ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-                          {tenant.tenant_name}
-                        </div>
-                        <div className={`text-xs sm:text-sm truncate ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                          {tenant.tenant_email}
-                        </div>
-                        <div className="sm:hidden mt-1 space-y-0.5">
-                          <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                            {tenant.unit?.unit_number}
-                          </div>
-                          <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                            {formatCurrency(tenant.rent_amount || 0)}
-                          </div>
-                          <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                            {new Date(tenant.lease_start).toLocaleDateString()} - {new Date(tenant.lease_end).toLocaleDateString()}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
-                    <div className={`text-sm ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-                      {tenant.unit?.unit_number}
-                    </div>
-                  </td>
-                  <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
-                    <div className={`text-sm ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-                      {new Date(tenant.lease_start).toLocaleDateString()} -
-                      {new Date(tenant.lease_end).toLocaleDateString()}
-                    </div>
-                  </td>
-                  <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
-                    <div className={`text-sm ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-                      {formatCurrency(tenant.rent_amount || 0)}
-                    </div>
-                  </td>
-                  <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+        
+        <div className="divide-y divide-gray-200 dark:divide-gray-700">
+          {isLoading ? (
+            <div className="p-8 text-center">
+              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                Loading tenants...
+              </p>
+            </div>
+          ) : tenants.length === 0 ? (
+            <div className="p-8 text-center">
+              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                No tenants found. Add a tenant to get started.
+              </p>
+            </div>
+          ) : (
+            tenants.map((tenant) => (
+              <div key={tenant.id} className={`${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                <div className="p-4 sm:p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {tenant.tenant_name}
+                    </h3>
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
                       ${new Date(tenant.lease_end) < new Date()
                         ? darkMode ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-800'
@@ -199,27 +177,59 @@ function Tenants() {
                     >
                       {new Date(tenant.lease_end) < new Date() ? 'Expired' : 'Active'}
                     </span>
-                  </td>
-                  <td className="px-2 sm:px-6 py-4 whitespace-nowrap text-right">
-                    <div className="flex items-center justify-end space-x-2">
-                      <button
-                        onClick={() => handleEdit(tenant)}
-                        className={`${darkMode ? 'text-indigo-400 hover:text-indigo-300' : 'text-indigo-600 hover:text-indigo-900'}`}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(tenant)}
-                        className={`${darkMode ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-900'}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                  </div>
+                  
+                  <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} mb-3`}>
+                    {tenant.tenant_phone || 'No phone number'}
+                  </div>
+                  
+                  <div className="flex flex-row gap-3 mb-3">
+                    <div className={`w-1/2 p-3 rounded-lg ${darkMode ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
+                      <div className={`text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'} mb-1`}>
+                        Room
+                      </div>
+                      <div className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {tenant.unit?.unit_number || 'No unit assigned'}
+                      </div>
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    
+                    <div className={`w-1/2 p-3 rounded-lg ${darkMode ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
+                      <div className={`text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'} mb-1`}>
+                        Rent
+                      </div>
+                      <div className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {formatCurrency(tenant.rent_amount || 0)}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700/50' : 'bg-gray-100'} mb-3`}>
+                    <div className={`text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'} mb-1`}>
+                      Lease Period
+                    </div>
+                    <div className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {new Date(tenant.lease_start).toLocaleDateString()} - {new Date(tenant.lease_end).toLocaleDateString()}
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-end space-x-2">
+                    <button
+                      onClick={() => handleEdit(tenant)}
+                      className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(tenant)}
+                      className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 

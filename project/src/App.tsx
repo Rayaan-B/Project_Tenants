@@ -11,7 +11,7 @@ import { useStore } from './lib/store';
 import { supabase } from './lib/supabase';
 
 function App() {
-  const { user, setUser, darkMode } = useStore();
+  const { user, setUser, darkMode, fetchTenants, fetchPayments, fetchProperties, fetchUnits } = useStore();
 
   React.useEffect(() => {
     const checkSession = async () => {
@@ -25,12 +25,47 @@ function App() {
         
         if (profile) {
           setUser(profile);
+          // Fetch all data when user logs in
+          fetchTenants();
+          fetchPayments();
+          fetchProperties();
+          fetchUnits();
         }
       }
     };
 
     checkSession();
-  }, [setUser]);
+    
+    // Set up realtime subscription for tenants table
+    const tenantsSubscription = supabase
+      .channel('public:tenants')
+      .on('postgres_changes', 
+        { event: 'INSERT', schema: 'public', table: 'tenants' }, 
+        () => {
+          console.log('Tenant added, refreshing data...');
+          fetchTenants();
+        }
+      )
+      .on('postgres_changes', 
+        { event: 'UPDATE', schema: 'public', table: 'tenants' }, 
+        () => {
+          console.log('Tenant updated, refreshing data...');
+          fetchTenants();
+        }
+      )
+      .on('postgres_changes', 
+        { event: 'DELETE', schema: 'public', table: 'tenants' }, 
+        () => {
+          console.log('Tenant deleted, refreshing data...');
+          fetchTenants();
+        }
+      )
+      .subscribe();
+      
+    return () => {
+      tenantsSubscription.unsubscribe();
+    };
+  }, [setUser, fetchTenants, fetchPayments, fetchProperties, fetchUnits]);
 
   React.useEffect(() => {
     if (darkMode) {

@@ -27,6 +27,10 @@ interface AppState {
   deleteTenant: (id: string) => Promise<void>;
   updateTenant: (id: string, tenant: Partial<Tenant>) => Promise<void>;
   deletePayment: (id: string) => Promise<void>;
+  deleteProperty: (id: string) => Promise<void>;
+  updateProperty: (id: string, property: Partial<Property>) => Promise<void>;
+  deleteUnit: (id: string) => Promise<void>;
+  updateUnit: (id: string, unit: Partial<Unit>) => Promise<void>;
   logout: () => Promise<void>;
   toggleDarkMode: () => void;
 }
@@ -40,7 +44,7 @@ export const useStore = create<AppState>((set, get) => ({
   units: [],
   loading: false,
   error: null,
-  darkMode: localStorage.getItem('darkMode') === 'true',
+  darkMode: typeof window !== 'undefined' ? localStorage.getItem('darkMode') === 'true' : false,
 
   logout: async () => {
     try {
@@ -71,13 +75,16 @@ export const useStore = create<AppState>((set, get) => ({
   setError: (error) => set({ error }),
   toggleDarkMode: () => {
     const newDarkMode = !get().darkMode;
-    localStorage.setItem('darkMode', String(newDarkMode));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('darkMode', String(newDarkMode));
+    }
     set({ darkMode: newDarkMode });
   },
 
   fetchTenants: async () => {
     try {
       set({ loading: true });
+      // Add a cache-busting parameter to ensure fresh data
       const { data, error } = await supabase
         .from('tenants')
         .select(`
@@ -87,7 +94,8 @@ export const useStore = create<AppState>((set, get) => ({
             unit_number
           )
         `)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(100); // Increase limit to ensure all tenants are fetched
 
       if (error) throw error;
       console.log('Fetched tenants:', data);
@@ -129,7 +137,11 @@ export const useStore = create<AppState>((set, get) => ({
         if (unitError) throw unitError;
       }
       
-      // Refresh tenants and units list after deletion
+      // Update the local state immediately to remove the deleted tenant
+      const currentTenants = get().tenants;
+      set({ tenants: currentTenants.filter(t => t.id !== id) });
+      
+      // Then refresh data from the server
       get().fetchTenants();
       get().fetchUnits();
     } catch (error) {
@@ -177,8 +189,29 @@ export const useStore = create<AppState>((set, get) => ({
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      console.log('Fetched payments:', data);
-      set({ payments: data || [] });
+      
+      // Process payment statuses based on current date
+      const processedPayments = data?.map(payment => {
+        // If payment has a payment date, it's paid
+        if (payment.payment_date) {
+          return { ...payment, status: 'paid' };
+        }
+        
+        // Compare due date with current date to determine if overdue
+        const dueDate = new Date(payment.due_date);
+        const currentDate = new Date();
+        
+        // If due date has passed, mark as overdue
+        if (dueDate < currentDate) {
+          return { ...payment, status: 'overdue' };
+        }
+        
+        // Otherwise, it's pending
+        return { ...payment, status: 'pending' };
+      }) || [];
+      
+      console.log('Fetched payments with updated statuses:', processedPayments);
+      set({ payments: processedPayments });
     } catch (error) {
       console.error('Error fetching payments:', error);
       set({ error: (error as Error).message });
@@ -238,6 +271,92 @@ export const useStore = create<AppState>((set, get) => ({
       if (error) throw error;
       set({ units: data || [] });
     } catch (error) {
+      set({ error: (error as Error).message });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  deleteProperty: async (id: string) => {
+    try {
+      set({ loading: true });
+      const { error } = await supabase
+        .from('properties')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      // Update local state
+      const { properties } = get();
+      set({ properties: properties.filter(p => p.id !== id) });
+    } catch (error) {
+      console.error('Error deleting property:', error);
+      set({ error: (error as Error).message });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  updateProperty: async (id: string, property: Partial<Property>) => {
+    try {
+      set({ loading: true });
+      const { error } = await supabase
+        .from('properties')
+        .update(property)
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      // Refresh properties to get updated data
+      await get().fetchProperties();
+    } catch (error) {
+      console.error('Error updating property:', error);
+      set({ error: (error as Error).message });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  deleteUnit: async (id: string) => {
+    try {
+      set({ loading: true });
+      const { error } = await supabase
+        .from('units')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      // Update local state
+      const { units } = get();
+      set({ units: units.filter(u => u.id !== id) });
+      
+      // Refresh properties to update units nested data
+      await get().fetchProperties();
+    } catch (error) {
+      console.error('Error deleting unit:', error);
+      set({ error: (error as Error).message });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  updateUnit: async (id: string, unit: Partial<Unit>) => {
+    try {
+      set({ loading: true });
+      const { error } = await supabase
+        .from('units')
+        .update(unit)
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      // Refresh units and properties to get updated data
+      await get().fetchUnits();
+      await get().fetchProperties();
+    } catch (error) {
+      console.error('Error updating unit:', error);
       set({ error: (error as Error).message });
     } finally {
       set({ loading: false });

@@ -3,14 +3,16 @@ import { X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useStore } from '../lib/store';
 import { toast } from 'react-hot-toast';
+import type { Property } from '../lib/types';
 
 interface PropertyModalProps {
   isOpen: boolean;
   onClose: () => void;
+  property?: Property;
 }
 
-export default function PropertyModal({ isOpen, onClose }: PropertyModalProps) {
-  const { fetchProperties } = useStore();
+export default function PropertyModal({ isOpen, onClose, property }: PropertyModalProps) {
+  const { fetchProperties, updateProperty } = useStore();
   const [loading, setLoading] = React.useState(false);
   const [formData, setFormData] = React.useState({
     name: '',
@@ -20,35 +22,18 @@ export default function PropertyModal({ isOpen, onClose }: PropertyModalProps) {
     zipCode: ''
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        throw new Error('No authenticated user found');
-      }
-
-      const { error } = await supabase
-        .from('properties')
-        .insert({
-          name: formData.name,
-          address: formData.address,
-          city: formData.city,
-          state: formData.state,
-          zip_code: formData.zipCode,
-          created_by: user.id
-        });
-
-      if (error) throw error;
-
-      toast.success('Property added successfully');
-      fetchProperties();
-      onClose();
-      
-      // Reset form
+  // Load property data when editing
+  React.useEffect(() => {
+    if (property) {
+      setFormData({
+        name: property.name || '',
+        address: property.address || '',
+        city: property.city || '',
+        state: property.state || '',
+        zipCode: property.zip_code || ''
+      });
+    } else {
+      // Reset form for new property
       setFormData({
         name: '',
         address: '',
@@ -56,9 +41,52 @@ export default function PropertyModal({ isOpen, onClose }: PropertyModalProps) {
         state: '',
         zipCode: ''
       });
+    }
+  }, [property]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      if (property) {
+        // Update existing property
+        await updateProperty(property.id, {
+          name: formData.name,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          zip_code: formData.zipCode
+        });
+        toast.success('Property updated successfully');
+      } else {
+        // Create new property
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          throw new Error('No authenticated user found');
+        }
+
+        const { error } = await supabase
+          .from('properties')
+          .insert({
+            name: formData.name,
+            address: formData.address,
+            city: formData.city,
+            state: formData.state,
+            zip_code: formData.zipCode,
+            created_by: user.id
+          });
+
+        if (error) throw error;
+        toast.success('Property added successfully');
+      }
+
+      fetchProperties();
+      onClose();
     } catch (error) {
-      console.error('Error adding property:', error);
-      toast.error(error instanceof Error ? error.message : 'Error adding property');
+      console.error('Error saving property:', error);
+      toast.error(error instanceof Error ? error.message : 'Error saving property');
     } finally {
       setLoading(false);
     }
@@ -70,7 +98,9 @@ export default function PropertyModal({ isOpen, onClose }: PropertyModalProps) {
     <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md shadow-xl">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Add New Property</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            {property ? 'Edit Property' : 'Add New Property'}
+          </h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
             <X className="h-6 w-6" />
           </button>
@@ -145,7 +175,7 @@ export default function PropertyModal({ isOpen, onClose }: PropertyModalProps) {
               disabled={loading}
               className="px-4 py-2 rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
-              {loading ? 'Adding...' : 'Add Property'}
+              {loading ? (property ? 'Updating...' : 'Adding...') : (property ? 'Update Property' : 'Add Property')}
             </button>
           </div>
         </form>

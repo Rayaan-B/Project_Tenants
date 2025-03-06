@@ -8,7 +8,7 @@ import { Payment } from '../lib/types';
 import { formatCurrency } from '../utils/currency';
 
 function Payments() {
-  const { payments, fetchPayments, deletePayment } = useStore();
+  const { payments, fetchPayments, deletePayment, darkMode } = useStore();
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<'list' | 'history'>('list');
   const [selectedPayment, setSelectedPayment] = React.useState<Payment | undefined>();
@@ -54,13 +54,13 @@ function Payments() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'paid':
-        return 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300';
+        return 'text-green-500 dark:text-green-400';
       case 'overdue':
-        return 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300';
+        return 'text-red-500 dark:text-red-400';
       case 'pending':
-        return 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300';
+        return 'text-yellow-500 dark:text-yellow-400';
       default:
-        return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300';
+        return 'text-gray-500 dark:text-gray-400';
     }
   };
 
@@ -157,6 +157,7 @@ function Payments() {
         <div className="border-b border-gray-100 dark:border-gray-700">
           <nav className="flex space-x-4 sm:space-x-8 px-4 sm:px-6">
             <button
+              type="button"
               onClick={() => setActiveTab('list')}
               className={`${
                 activeTab === 'list'
@@ -167,6 +168,7 @@ function Payments() {
               Payment List
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab('history')}
               className={`${
                 activeTab === 'history'
@@ -179,112 +181,90 @@ function Payments() {
           </nav>
         </div>
 
-        {activeTab === 'list' ? (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-800/50">
-                <tr>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Tenant
-                  </th>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Amount
-                  </th>
-                  <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Due Date
-                  </th>
-                  <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Payment Date
-                  </th>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Method
-                  </th>
-                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    <span className="sr-only">Actions</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                {payments.map((payment) => (
-                  <tr key={payment.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-150">
-                    <td className="px-3 sm:px-6 py-3 sm:py-4">
-                      <div className="text-sm font-medium text-gray-900 dark:text-white">
-                        {payment.tenant?.unit?.unit_number}
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        {payment.tenant?.tenant_name}
-                      </div>
-                      <div className="sm:hidden text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        Due: {new Date(payment.due_date).toLocaleDateString()}
-                      </div>
-                      {payment.payment_date && (
-                        <div className="sm:hidden text-xs text-gray-500 dark:text-gray-400">
-                          Paid: {new Date(payment.payment_date).toLocaleDateString()}
+        {/* Pre-render both tabs but only show the active one */}
+        <div>
+          {/* Payment List Tab */}
+          <div className={`${activeTab === 'list' ? 'block' : 'hidden'}`}>
+            <div className="divide-y divide-gray-200 dark:divide-gray-700">
+              {payments.length > 0 ? (
+                payments.map((payment) => (
+                  <div key={payment.id} className="border-b border-gray-200 dark:border-gray-700">
+                    <div className="p-6">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                            Room {payment.tenant?.unit?.unit_number}
+                          </h3>
+                          <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            {payment.tenant?.tenant_name}
+                          </div>
                         </div>
-                      )}
-                      <div className="sm:hidden text-xs text-gray-500 dark:text-gray-400">
-                        {payment.payment_method || '-'}
+                        <div className="text-right">
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">
+                            {formatCurrency(payment.amount)}
+                          </div>
+                          <div className={`text-sm font-medium mt-1 ${getStatusColor(payment.status)}`}>
+                            {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                          </div>
+                        </div>
                       </div>
-                    </td>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4">
-                      <div className="text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">
-                        {formatCurrency(payment.amount)}
+                      
+                      <div className="space-y-1 mb-3">
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          Due: {new Date(payment.due_date).toLocaleDateString()}
+                        </div>
+                        {payment.payment_date && (
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            Paid: {new Date(payment.payment_date).toLocaleDateString()}
+                          </div>
+                        )}
+                        
+                        <div className="flex justify-between items-center">
+                          <div>
+                            {payment.payment_method && (
+                              <div className="text-xs text-gray-500 dark:text-gray-400">
+                                Via: {payment.payment_method}
+                              </div>
+                            )}
+                            {payment.payment_method === 'Mpesa' && payment.mpesa_code && (
+                              <div className="text-xs text-indigo-500 dark:text-indigo-400">
+                                Mpesa: {payment.mpesa_code}
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => handleEdit(payment)}
+                              className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(payment)}
+                              className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                    </td>
-                    <td className="hidden sm:table-cell px-6 py-4">
-                      <div className="text-sm text-gray-900 dark:text-white">
-                        {new Date(payment.due_date).toLocaleDateString()}
-                      </div>
-                    </td>
-                    <td className="hidden sm:table-cell px-6 py-4">
-                      <div className="text-sm text-gray-900 dark:text-white">
-                        {payment.payment_date
-                          ? new Date(payment.payment_date).toLocaleDateString()
-                          : '-'}
-                      </div>
-                    </td>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4">
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                          payment.status
-                        )}`}
-                      >
-                        {payment.status.charAt(0).toUpperCase() +
-                          payment.status.slice(1)}
-                      </span>
-                    </td>
-                    <td className="hidden sm:table-cell px-6 py-4">
-                      <div className="text-sm text-gray-900 dark:text-white">
-                        {payment.payment_method || '-'}
-                      </div>
-                    </td>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
-                      <div className="flex items-center justify-end space-x-3">
-                        <button
-                          onClick={() => handleEdit(payment)}
-                          className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors duration-200"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(payment)}
-                          className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors duration-200"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="p-6 text-center text-gray-500 dark:text-gray-400">
+                  No payments found. Add a payment to get started.
+                </div>
+              )}
+            </div>
           </div>
-        ) : (
-          <PaymentHistory />
-        )}
+
+          {/* Payment History Tab */}
+          <div className={`${activeTab === 'history' ? 'block' : 'hidden'}`}>
+            <PaymentHistory />
+          </div>
+        </div>
       </div>
 
       <PaymentModal
