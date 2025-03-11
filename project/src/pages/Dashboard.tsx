@@ -62,15 +62,15 @@ function Dashboard() {
         <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
           Dashboard Overview
         </h1>
-        <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+        <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'} mt-1`}>
           Last updated: {new Date().toLocaleDateString('en-GB')}
         </div>
       </div>
 
       {/* Mobile header - Only visible on mobile */}
       <div className="md:hidden flex flex-col px-4 py-2">
-        <h1 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Dashboard Overview</h1>
-        <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+        <h1 className={`text-2xl sm:text-4xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Dashboard Overview</h1>
+        <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'} mt-1`}>
           Last updated: {new Date().toLocaleDateString('en-GB')}
         </div>
       </div>

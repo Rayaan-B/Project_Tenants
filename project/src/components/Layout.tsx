@@ -47,6 +47,12 @@ function Layout() {
 
   const isActive = (path: string) => location.pathname === path;
 
+  const getCurrentPageName = () => {
+    const currentPath = location.pathname;
+    const currentNavItem = navigation.find(item => item.href === currentPath);
+    return currentNavItem ? currentNavItem.name : 'Dashboard';
+  };
+
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gradient-to-br from-slate-50 to-blue-50'}`}>
       {/* Mobile menu button */}
@@ -58,7 +64,7 @@ function Layout() {
         >
           <Menu className="h-6 w-6" />
         </button>
-        <h2 className="font-semibold text-xl">Dashboard</h2>
+        <h2 className="font-semibold text-xl">{getCurrentPageName()}</h2>
         <button
           onClick={toggleDarkMode}
           className="p-1"
@@ -73,7 +79,7 @@ function Layout() {
           {/* Sidebar for desktop */}
           <div className={`hidden md:flex flex-col gap-1 w-64 p-4 rounded-xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="font-semibold text-xl">Dashboard</h2>
+              <h2 className="font-semibold text-xl">{getCurrentPageName()}</h2>
               <button
                 onClick={toggleDarkMode}
                 className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
@@ -122,7 +128,7 @@ function Layout() {
               className={`fixed top-0 left-0 z-40 h-full w-64 p-4 ${darkMode ? 'bg-gray-900' : 'bg-white'} shadow-lg md:hidden flex flex-col`}
             >
               <div className="flex items-center justify-between mb-6 pl-10">
-                <h2 className={`font-semibold text-xl ${darkMode ? 'text-white' : 'text-gray-900'}`}>Dashboard</h2>
+                <h2 className={`font-semibold text-xl ${darkMode ? 'text-white' : 'text-gray-900'}`}>{getCurrentPageName()}</h2>
                 <button
                   onClick={toggleDarkMode}
                   className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
