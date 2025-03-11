@@ -63,7 +63,7 @@ function Dashboard() {
           Dashboard Overview
         </h1>
         <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-          Last updated: {new Date().toLocaleDateString()}
+          Last updated: {new Date().toLocaleDateString('en-GB')}
         </div>
       </div>
 
@@ -71,7 +71,7 @@ function Dashboard() {
       <div className="md:hidden flex flex-col px-4 py-2">
         <h1 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Dashboard Overview</h1>
         <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-          Last updated: {new Date().toLocaleDateString()}
+          Last updated: {new Date().toLocaleDateString('en-GB')}
         </div>
       </div>
 

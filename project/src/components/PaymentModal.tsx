@@ -60,6 +60,30 @@ export default function PaymentModal({ isOpen, onClose, payment }: PaymentModalP
     }
   }, [payment]);
 
+  // Auto-populate due date when tenant changes
+  React.useEffect(() => {
+    if (formData.tenantId && !payment) {
+      const selectedTenant = tenants.find(t => t.id === formData.tenantId);
+      if (selectedTenant && selectedTenant.payment_due_day) {
+        // Get current month and year
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = today.getMonth();
+        
+        // Manually construct the date string to avoid timezone issues
+        // Ensure day is padded with leading zero if needed
+        const day = selectedTenant.payment_due_day.toString().padStart(2, '0');
+        const monthStr = (month + 1).toString().padStart(2, '0'); // +1 because months are 0-indexed
+        const formattedDate = `${year}-${monthStr}-${day}`;
+        
+        setFormData(prev => ({
+          ...prev,
+          dueDate: formattedDate
+        }));
+      }
+    }
+  }, [formData.tenantId, tenants, payment]);
+
   const sortedTenants = React.useMemo(() => {
     return [...tenants].sort((a, b) => {
       const unitA = a.unit?.unit_number || '';

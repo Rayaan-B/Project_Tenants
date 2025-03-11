@@ -8,10 +8,11 @@ import { Payment } from '../lib/types';
 import { formatCurrency } from '../utils/currency';
 
 function Payments() {
-  const { payments, fetchPayments, deletePayment, darkMode } = useStore();
+  const { payments, fetchPayments, deletePayment } = useStore();
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<'list' | 'history'>('list');
   const [selectedPayment, setSelectedPayment] = React.useState<Payment | undefined>();
+  const [expandedTenants, setExpandedTenants] = React.useState<Record<string, boolean>>({});
 
   React.useEffect(() => {
     fetchPayments().then(() => {
@@ -64,13 +65,46 @@ function Payments() {
     }
   };
 
+  // Toggle expanded state for a tenant
+  const toggleExpand = (tenantId: string) => {
+    setExpandedTenants(prev => ({
+      ...prev,
+      [tenantId]: !prev[tenantId]
+    }));
+  };
+
+  // Group payments by tenant
+  const groupedPayments = React.useMemo(() => {
+    const grouped: Record<string, Payment[]> = {};
+    
+    payments.forEach(payment => {
+      if (payment.tenant_id) {
+        if (!grouped[payment.tenant_id]) {
+          grouped[payment.tenant_id] = [];
+        }
+        grouped[payment.tenant_id].push(payment);
+      }
+    });
+    
+    // Sort payments within each tenant group by date (most recent first)
+    Object.keys(grouped).forEach(tenantId => {
+      grouped[tenantId].sort((a, b) => {
+        const dateA = a.payment_date ? new Date(a.payment_date).getTime() : new Date(a.due_date).getTime();
+        const dateB = b.payment_date ? new Date(b.payment_date).getTime() : new Date(b.due_date).getTime();
+        return dateB - dateA;
+      });
+    });
+    
+    return grouped;
+  }, [payments]);
+
   return (
     <div className="space-y-8 p-4 sm:p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-8">
         <div>
           <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 dark:text-white">Payments Overview</h1>
           <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Last updated: {new Date().toLocaleDateString()}
+            Last updated: {new Date().toLocaleDateString('en-GB')}
           </div>
         </div>
         <button
@@ -186,62 +220,62 @@ function Payments() {
           {/* Payment List Tab */}
           <div className={`${activeTab === 'list' ? 'block' : 'hidden'}`}>
             <div className="divide-y divide-gray-200 dark:divide-gray-700">
-              {payments.length > 0 ? (
-                payments.map((payment) => (
-                  <div key={payment.id} className="border-b border-gray-200 dark:border-gray-700">
+              {Object.keys(groupedPayments).length > 0 ? (
+                Object.keys(groupedPayments).map(tenantId => (
+                  <div key={tenantId} className="border-b border-gray-200 dark:border-gray-700">
                     <div className="p-6">
                       <div className="flex justify-between items-start mb-4">
                         <div>
                           <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-                            Room {payment.tenant?.unit?.unit_number}
+                            Room {groupedPayments[tenantId][0].tenant?.unit?.unit_number}
                           </h3>
                           <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            {payment.tenant?.tenant_name}
+                            {groupedPayments[tenantId][0].tenant?.tenant_name}
                           </div>
                         </div>
                         <div className="text-right">
                           <div className="text-sm font-medium text-gray-900 dark:text-white">
-                            {formatCurrency(payment.amount)}
+                            {formatCurrency(groupedPayments[tenantId][0].amount)}
                           </div>
-                          <div className={`text-sm font-medium mt-1 ${getStatusColor(payment.status)}`}>
-                            {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                          <div className={`text-sm font-medium mt-1 ${getStatusColor(groupedPayments[tenantId][0].status)}`}>
+                            {groupedPayments[tenantId][0].status.charAt(0).toUpperCase() + groupedPayments[tenantId][0].status.slice(1)}
                           </div>
                         </div>
                       </div>
                       
                       <div className="space-y-1 mb-3">
                         <div className="text-xs text-gray-500 dark:text-gray-400">
-                          Due: {new Date(payment.due_date).toLocaleDateString()}
+                          Due: {new Date(groupedPayments[tenantId][0].due_date).toLocaleDateString('en-GB')}
                         </div>
-                        {payment.payment_date && (
+                        {groupedPayments[tenantId][0].payment_date && (
                           <div className="text-xs text-gray-500 dark:text-gray-400">
-                            Paid: {new Date(payment.payment_date).toLocaleDateString()}
+                            Paid: {new Date(groupedPayments[tenantId][0].payment_date).toLocaleDateString('en-GB')}
                           </div>
                         )}
                         
                         <div className="flex justify-between items-center">
                           <div>
-                            {payment.payment_method && (
+                            {groupedPayments[tenantId][0].payment_method && (
                               <div className="text-xs text-gray-500 dark:text-gray-400">
-                                Via: {payment.payment_method}
+                                Via: {groupedPayments[tenantId][0].payment_method}
                               </div>
                             )}
-                            {payment.payment_method === 'Mpesa' && payment.mpesa_code && (
+                            {groupedPayments[tenantId][0].payment_method === 'Mpesa' && groupedPayments[tenantId][0].mpesa_code && (
                               <div className="text-xs text-indigo-500 dark:text-indigo-400">
-                                Mpesa: {payment.mpesa_code}
+                                Mpesa: {groupedPayments[tenantId][0].mpesa_code}
                               </div>
                             )}
                           </div>
                           
                           <div className="flex space-x-2">
                             <button
-                              onClick={() => handleEdit(payment)}
+                              onClick={() => handleEdit(groupedPayments[tenantId][0])}
                               className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
                             >
                               <Edit className="h-4 w-4" />
                             </button>
                             <button
-                              onClick={() => handleDelete(payment)}
+                              onClick={() => handleDelete(groupedPayments[tenantId][0])}
                               className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -249,6 +283,83 @@ function Payments() {
                           </div>
                         </div>
                       </div>
+                      <div className="flex justify-center mt-4">
+                        <button
+                          onClick={() => toggleExpand(tenantId)}
+                          className="inline-flex items-center px-3 py-1.5 text-xs bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/50 rounded-md"
+                        >
+                          {expandedTenants[tenantId] ? 'Hide Payments' : 'Show All Payments'}
+                        </button>
+                      </div>
+                      {expandedTenants[tenantId] && (
+                        <div className="mt-4">
+                          {groupedPayments[tenantId].slice(1).map(payment => (
+                            <div key={payment.id} className="border-b border-gray-200 dark:border-gray-700">
+                              <div className="p-6">
+                                <div className="flex justify-between items-start mb-4">
+                                  <div>
+                                    <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                                      Room {payment.tenant?.unit?.unit_number}
+                                    </h3>
+                                    <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                      {payment.tenant?.tenant_name}
+                                    </div>
+                                  </div>
+                                  <div className="text-right">
+                                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                      {formatCurrency(payment.amount)}
+                                    </div>
+                                    <div className={`text-sm font-medium mt-1 ${getStatusColor(payment.status)}`}>
+                                      {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <div className="space-y-1 mb-3">
+                                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                                    Due: {new Date(payment.due_date).toLocaleDateString('en-GB')}
+                                  </div>
+                                  {payment.payment_date && (
+                                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                                      Paid: {new Date(payment.payment_date).toLocaleDateString('en-GB')}
+                                    </div>
+                                  )}
+                                  
+                                  <div className="flex justify-between items-center">
+                                    <div>
+                                      {payment.payment_method && (
+                                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                                          Via: {payment.payment_method}
+                                        </div>
+                                      )}
+                                      {payment.payment_method === 'Mpesa' && payment.mpesa_code && (
+                                        <div className="text-xs text-indigo-500 dark:text-indigo-400">
+                                          Mpesa: {payment.mpesa_code}
+                                        </div>
+                                      )}
+                                    </div>
+                                    
+                                    <div className="flex space-x-2">
+                                      <button
+                                        onClick={() => handleEdit(payment)}
+                                        className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                                      >
+                                        <Edit className="h-4 w-4" />
+                                      </button>
+                                      <button
+                                        onClick={() => handleDelete(payment)}
+                                        className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))

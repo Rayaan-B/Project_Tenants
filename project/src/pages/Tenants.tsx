@@ -6,6 +6,33 @@ import { Tenant } from '../lib/types';
 import { toast } from 'react-hot-toast';
 import { formatCurrency } from '../utils/currency';
 
+function getDaySuffix(day: number): string {
+  if (day >= 11 && day <= 13) {
+    return 'th';
+  }
+  switch (day % 10) {
+    case 1:
+      return 'st';
+    case 2:
+      return 'nd';
+    case 3:
+      return 'rd';
+    default:
+      return 'th';
+  }
+}
+
+function getNextPaymentDate(paymentDueDay: number): string {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth();
+  const nextPaymentDate = new Date(year, month, paymentDueDay);
+  if (nextPaymentDate < today) {
+    nextPaymentDate.setMonth(month + 1);
+  }
+  return nextPaymentDate.toLocaleDateString('en-GB');
+}
+
 function Tenants() {
   const { tenants, fetchTenants, deleteTenant, darkMode } = useStore();
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -66,7 +93,7 @@ function Tenants() {
             Tenants Overview
           </h1>
           <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'} mt-1`}>
-            Last updated: {new Date().toLocaleDateString()}
+            Last updated: {new Date().toLocaleDateString('en-GB')}
           </div>
         </div>
         <button
@@ -203,12 +230,32 @@ function Tenants() {
                     </div>
                   </div>
                   
+                  <div className="flex flex-row gap-3 mb-3">
+                    <div className={`w-1/2 p-3 rounded-lg ${darkMode ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
+                      <div className={`text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'} mb-1`}>
+                        Payment Due Date
+                      </div>
+                      <div className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {tenant.payment_due_day ? `${tenant.payment_due_day}${getDaySuffix(tenant.payment_due_day)} of each month` : 'Not set'}
+                      </div>
+                    </div>
+                    
+                    <div className={`w-1/2 p-3 rounded-lg ${darkMode ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
+                      <div className={`text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'} mb-1`}>
+                        Next Payment
+                      </div>
+                      <div className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {tenant.payment_due_day ? getNextPaymentDate(tenant.payment_due_day) : 'Not set'}
+                      </div>
+                    </div>
+                  </div>
+                  
                   <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700/50' : 'bg-gray-100'} mb-3`}>
                     <div className={`text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'} mb-1`}>
                       Lease Period
                     </div>
                     <div className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {new Date(tenant.lease_start).toLocaleDateString()} - {new Date(tenant.lease_end).toLocaleDateString()}
+                      {new Date(tenant.lease_start).toLocaleDateString('en-GB')} - {new Date(tenant.lease_end).toLocaleDateString('en-GB')}
                     </div>
                   </div>
                   

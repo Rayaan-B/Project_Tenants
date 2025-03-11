@@ -40,19 +40,41 @@ const PaymentHistory: React.FC = () => {
         (payment) => payment.tenant_id === tenant.id
       );
 
-      const currentDate = new Date();
       const leaseStartDate = new Date(tenant.lease_start);
-      const monthsActive = Math.max(
-        0,
-        (currentDate.getFullYear() - leaseStartDate.getFullYear()) * 12 +
-          (currentDate.getMonth() - leaseStartDate.getMonth())
-      );
+      
+      // Get tenant's payment due day
+      const paymentDueDay = tenant.payment_due_day;
+      
+      // Get current date and month information
+      const today = new Date();
+      
+      // Calculate months active from lease start to current month
+      // For a lease starting on January 1, 2025 and today being March 10, 2025,
+      // this should be 3 months (Jan, Feb, Mar) if past due date, or 2 months (Jan, Feb) if before due date
+      
+      // First, calculate the difference in months
+      let monthDiff = (today.getFullYear() - leaseStartDate.getFullYear()) * 12 + 
+                     (today.getMonth() - leaseStartDate.getMonth());
+      
+      // Add 1 to include the start month itself in the count
+      let monthsActive = monthDiff + 1;
+      
+      // If we haven't passed the due date yet in the current month,
+      // we don't consider the current month's rent as due yet
+      if (today.getDate() < paymentDueDay) {
+        monthsActive = Math.max(0, monthsActive - 1);
+      }
 
+      // Calculate total rent due based on months active
       const totalRentDue = tenant.rent_amount * monthsActive;
+      
+      // Calculate total paid from all payments
       const totalPaid = tenantPayments.reduce(
         (sum, payment) => sum + payment.amount,
         0
       );
+      
+      // Calculate balance
       const balance = totalRentDue - totalPaid;
 
       const lastPayment = tenantPayments
@@ -130,13 +152,22 @@ const PaymentHistory: React.FC = () => {
       // Calculate total paid this month
       const totalPaid = monthPayments.reduce((sum, payment) => sum + payment.amount, 0);
       
+      // Calculate due date for this month
+      let dueDate = null;
+      if (tenant.payment_due_day) {
+        dueDate = new Date(year, month, tenant.payment_due_day);
+        // Format as DD/MM/YYYY
+        dueDate = dueDate.toLocaleDateString('en-GB');
+      }
+      
       months.push({
         monthYear: `${date.toLocaleString('default', { month: 'long' })} ${year}`,
         expected: tenant.rent_amount,
         paid: totalPaid,
         balance: tenant.rent_amount - totalPaid,
         status: totalPaid >= tenant.rent_amount ? 'Paid' : totalPaid > 0 ? 'Partial' : 'Unpaid',
-        payments: monthPayments
+        payments: monthPayments,
+        dueDate: dueDate
       });
       
       // Move to next month
@@ -157,6 +188,33 @@ const PaymentHistory: React.FC = () => {
       default:
         return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300';
     }
+  };
+
+  const getDaySuffix = (day: number) => {
+    if (day >= 11 && day <= 13) {
+      return 'th';
+    }
+    switch (day % 10) {
+      case 1:
+        return 'st';
+      case 2:
+        return 'nd';
+      case 3:
+        return 'rd';
+      default:
+        return 'th';
+    }
+  };
+
+  const getNextPaymentDate = (paymentDueDay: number) => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const date = new Date(year, month, paymentDueDay);
+    if (date < today) {
+      date.setMonth(month + 1);
+    }
+    return date.toLocaleDateString('en-GB');
   };
 
   return (
@@ -250,6 +308,30 @@ const PaymentHistory: React.FC = () => {
                   <div className="flex flex-row gap-3 mb-3">
                     <div className="w-1/2 p-3 rounded-lg bg-gray-100 dark:bg-gray-700/50">
                       <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                        Payment Due Day
+                      </div>
+                      <div className="text-sm font-medium text-gray-900 dark:text-white">
+                        {summary.tenant.payment_due_day ? 
+                          `${summary.tenant.payment_due_day}${getDaySuffix(summary.tenant.payment_due_day)} of each month` : 
+                          'Not set'}
+                      </div>
+                    </div>
+                    
+                    <div className="w-1/2 p-3 rounded-lg bg-gray-100 dark:bg-gray-700/50">
+                      <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                        Next Due Date
+                      </div>
+                      <div className="text-sm font-medium text-gray-900 dark:text-white">
+                        {summary.tenant.payment_due_day ? 
+                          getNextPaymentDate(summary.tenant.payment_due_day) : 
+                          'Not set'}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-row gap-3 mb-3">
+                    <div className="w-1/2 p-3 rounded-lg bg-gray-100 dark:bg-gray-700/50">
+                      <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
                         Total Due
                       </div>
                       <div className="text-sm font-medium text-gray-900 dark:text-white">
@@ -273,7 +355,7 @@ const PaymentHistory: React.FC = () => {
                     </div>
                     <div className="text-sm font-medium text-gray-900 dark:text-white">
                       {summary.lastPaymentDate
-                        ? new Date(summary.lastPaymentDate).toLocaleDateString()
+                        ? new Date(summary.lastPaymentDate).toLocaleDateString('en-GB')
                         : 'No payment recorded'}
                     </div>
                   </div>
@@ -348,7 +430,7 @@ const PaymentHistory: React.FC = () => {
                                               KSh {payment.amount.toLocaleString()}
                                             </div>
                                             <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                              {new Date(payment.payment_date || '').toLocaleDateString()}
+                                              {new Date(payment.payment_date || '').toLocaleDateString('en-GB')}
                                             </div>
                                           </div>
                                           <div className="bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-0.5 rounded text-xs">
@@ -385,6 +467,15 @@ const PaymentHistory: React.FC = () => {
                                       : 'text-red-600 dark:text-red-400'
                                   }`}>
                                     KSh {month.balance.toLocaleString()} {month.balance > 0 ? '(Due)' : ''}
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="grid grid-cols-2 gap-3 mt-3">
+                                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                                  <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Due Date</div>
+                                  <div className="text-sm font-bold text-gray-900 dark:text-white">
+                                    {month.dueDate}
                                   </div>
                                 </div>
                               </div>

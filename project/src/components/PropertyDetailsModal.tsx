@@ -95,14 +95,14 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Created At</p>
                   <p className="text-gray-900 dark:text-gray-100">
-                    {new Date(property.created_at).toLocaleDateString()}
+                    {new Date(property.created_at).toLocaleDateString('en-GB')}
                   </p>
                 </div>
 
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Last Updated</p>
                   <p className="text-gray-900 dark:text-gray-100">
-                    {new Date(property.updated_at).toLocaleDateString()}
+                    {new Date(property.updated_at).toLocaleDateString('en-GB')}
                   </p>
                 </div>
               </div>

@@ -52,7 +52,7 @@ function Properties() {
         <div>
           <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 dark:text-white">Properties Overview</h1>
           <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Last updated: {new Date().toLocaleDateString()}
+            Last updated: {new Date().toLocaleDateString('en-GB')}
           </div>
         </div>
         <button
